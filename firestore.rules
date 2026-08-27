@@ -1,0 +1,48 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAnonymous() {
+      return request.auth != null
+        && request.auth.token.firebase.sign_in_provider == 'anonymous';
+    }
+
+    function hasValidName(name) {
+      // Fixed, non-geographic vocabulary only. This also rejects contact details.
+      return name is string && name.matches(
+        '^(充電を忘れた|電池に強い|コンセントを探す|うたた寝する|のんびりしている|夜ふかしの|まだ元気な|ひと休み中の)(ペンギン|カピバラ|ラッコ|パンダ|ハリネズミ|ナマケモノ|フクロウ|コアラ)$'
+      );
+    }
+
+    function validPost() {
+      let data = request.resource.data;
+      let fields = ['percentage', 'createdAt', 'expiresAt', 'anonymousName'];
+      return data.keys().hasAll(fields)
+        && data.keys().hasOnly(fields)
+        && data.percentage is int
+        && data.percentage >= 0
+        && data.percentage <= 100
+        && hasValidName(data.anonymousName)
+        && data.createdAt is timestamp
+        && data.createdAt == request.time
+        && data.expiresAt is timestamp
+        // Tolerate modest client-clock/network skew, never an arbitrary retention.
+        && data.expiresAt >= request.time + duration.value(1435, 'm')
+        && data.expiresAt <= request.time + duration.value(1445, 'm');
+    }
+
+    match /batteryPosts/{postId} {
+      // All records are deliberately anonymous. Display expiry is enforced by the
+      // client query AND its final timestamp checks, independently of delayed TTL.
+      // Rules are not filters: a request.time cutoff here would reject valid paged
+      // queries whose client cutoff precedes server request.time by network latency.
+      allow get: if isAnonymous();
+      allow list: if isAnonymous() && request.query.limit <= 200;
+      allow create: if isAnonymous() && validPost();
+      allow update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "someone-battery",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "誰かの充電 — 名前も知らない誰かの、いまの残量。",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "test:rules": "firebase emulators:exec --project demo-someone-battery --only firestore \"vitest run --config vitest.rules.config.ts\"",
+    "test:e2e": "playwright test",
+    "secret-scan": "node scripts/secret-scan.mjs",
+    "assets": "node scripts/generate-assets.mjs"
+  },
+  "engines": {
+    "node": ">=22.0.0 <25"
+  },
+  "dependencies": {
+    "@vercel/analytics": "2.0.1",
+    "firebase": "12.17.0",
+    "lucide-react": "1.28.0",
+    "next": "16.3.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
+    "@firebase/rules-unit-testing": "5.0.1",
+    "@playwright/test": "^1.58.2",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "^24.0.0",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.3",
+    "firebase-tools": "15.25.1",
+    "sharp": "^0.34.5",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3",
+    "vitest": "4.1.10"
+  }
+}

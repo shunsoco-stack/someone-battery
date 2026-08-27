@@ -1,0 +1,21 @@
+{
+  "indexes": [],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "batteryPosts",
+      "fieldPath": "expiresAt",
+      "ttl": true,
+      "indexes": []
+    },
+    {
+      "collectionGroup": "batteryPosts",
+      "fieldPath": "anonymousName",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "batteryPosts",
+      "fieldPath": "percentage",
+      "indexes": []
+    }
+  ]
+}

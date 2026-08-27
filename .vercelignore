@@ -1,0 +1,12 @@
+.git
+.env*
+.firebase
+.firebase-config
+node_modules
+.next
+test-results
+playwright-report
+coverage
+*.log
+.cache
+.agent-browser
