@@ -93,17 +93,25 @@ function safeLabel(value) {
 function git(arguments_, input) {
   try {
     return execFileSync("git", ["-C", ROOT, ...arguments_], {
-      encoding: "buffer",
-      input,
+      // null keeps stdout as a Buffer. The pseudo-encoding "buffer" fails when
+      // Node tries to encode string stdin (first exercised by history batches).
+      encoding: null,
+      input: typeof input === "string" ? Buffer.from(input, "utf8") : input,
       maxBuffer: MAX_GIT_OUTPUT_BYTES,
       timeout: 60_000,
       windowsHide: true,
       stdio: ["pipe", "pipe", "pipe"],
       env: { ...process.env, GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: "1" },
     });
-  } catch {
-    // Git's stderr/command can include private remote URLs. Do not echo it.
-    throw new Error("Git inspection failed; no successful scan can be claimed.");
+  } catch (error) {
+    // Git's stderr/command can include private remote URLs or object content.
+    // Identify only our fixed operation and process metadata, never raw output.
+    const operation = ["rev-parse", "ls-files", "cat-file", "rev-list", "hash-object"].includes(arguments_[0])
+      ? arguments_[0] : "unknown";
+    const batch = arguments_.some((argument) => argument.startsWith("--batch")) ? "/batch" : "";
+    const status = Number.isInteger(error?.status) ? String(error.status) : "unavailable";
+    const code = typeof error?.code === "string" && /^[A-Z0-9_]+$/.test(error.code) ? error.code : "unavailable";
+    throw new Error(`Git inspection failed (operation=${operation}${batch}, status=${status}, code=${code}); no successful scan can be claimed.`);
   }
 }
 
@@ -269,7 +277,16 @@ function selfTest() {
   assert(isForbiddenPublicationPath("secrets/service-account.json"));
   assert(!isForbiddenPublicationPath(".env.example"));
   assert(!isForbiddenPublicationPath("docs/SECURITY.md"));
-  console.log(`PASS: secret scanner self-test (${positives.length} positive signatures, ${negatives.length} safe examples, location/redaction/path checks).`);
+  // Regression: history uses string stdin for cat-file --batch-check. Exercise
+  // that transport even before a repository has its first commit. hash-object
+  // WITHOUT -w only computes a digest; it does not write objects or change Git.
+  const harmlessInput = "scanner transport self-test\n";
+  const stringDigest = git(["hash-object", "--stdin"], harmlessInput);
+  const bufferDigest = git(["hash-object", "--stdin"], Buffer.from(harmlessInput, "utf8"));
+  assert(Buffer.isBuffer(stringDigest));
+  assert.deepEqual(stringDigest, bufferDigest);
+  assert.match(stringDigest.toString("utf8").trim(), /^[0-9a-f]{40,64}$/);
+  console.log(`PASS: secret scanner self-test (${positives.length} positive signatures, ${negatives.length} safe examples, location/redaction/path checks, Git string/Buffer stdin regression).`);
 }
 
 if (process.argv[1] && realpathSync(path.resolve(process.argv[1])) === fileURLToPath(import.meta.url)) {

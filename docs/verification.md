@@ -10,8 +10,9 @@
 
 | 検証 | コマンド / 方法 | 状態 | 証跡・備考 |
 | --- | --- | --- | --- |
-| Secret Scanの自己テスト | `node scripts/secret-scan.mjs --self-test` | 成功 | 15種類の陽性例、6つの安全な例、行番号・出力の非機密性・公開禁止パスを検証 |
-| Secret Scan | `npm run secret-scan` | 作業ツリー成功・最終再実行待ち | 公開前の作業ツリー67ファイル、index 0件、history 0件で検出なし。最終ステージ内容とコミット後の到達可能履歴は再実行待ち |
+| Secret Scanの自己テスト | `node scripts/secret-scan.mjs --self-test` | 成功 | 15種類の陽性例、6つの安全な例、行番号・出力の非機密性・公開禁止パス、Gitへの文字列／Buffer入力の回帰検証 |
+| Secret Scan | `npm run secret-scan` | 作業ツリー・ステージ・履歴成功 | 公開前に作業ツリー68ファイル、index 68件、追加履歴オブジェクト1件で検出なし。同一blobは重複排除され、履歴検査自体は省略しない。Node.jsの標準入力処理の互換性を修正後に再検査済み |
+| GitHubの秘密情報保護 | Repository APIで設定確認 | 有効 | Secret scanningとSecret scanning push protectionの両方が`enabled` |
 | Lint | `npm run lint` | 成功 | アプリ全体のESLint検査成功 |
 | TypeScript | `npm run typecheck` | 成功 | Next.js型生成と`tsc --noEmit`成功 |
 | Unit tests | `npm test` | 成功 | 5ファイル、150 / 150件成功 |
@@ -40,6 +41,8 @@
 | reduced motion | 実装済み・設定下でE2E成功 | E2Eは`reducedMotion: reduce`で実行。動きの快適さを含む人による評価は別途必要 |
 | manifest・アイコン・OG画像 | ローカル・公開成功 | manifestの項目・アイコンとOG等の配信をE2Eで確認 |
 | サービスワーカー・オフライン | 公開成功 | SWのactivated／ページ制御、オフライン遷移時の`offline.html`表示、オンライン復帰と履歴保持を確認 |
+| HTTPセキュリティヘッダー | 公開成功 | HTTP 200。CSP、`X-Frame-Options: DENY`、`Referrer-Policy: no-referrer`、battery／geolocationなどを拒否するPermissions Policyを確認 |
+| 公開実行時エラー | 検査時の該当ログなし | 公開操作後の直近1時間をVercelのerrorレベルで照会。将来の実行エラーがないことを保証するものではない |
 
 公開PWA検査では、CacheStorageが`/favicon.svg`、`/icon-192.png`、`/icon-512.png`、`/offline.html`の4静的資産のみであることを確認しました。トップページの取得、Analytics APIへのPOST（202 / `no-store`）とGET（405）、オフライン／オンライン遷移の後も、API・投稿・認証・HTMLドキュメントのキャッシュはありません。計測APIへのPOSTは検査のための直接リクエストであり、停止中のブラウザー計測やVercelでのイベント収集を意味しません。
 
@@ -61,7 +64,6 @@
 ## 完了していない外部設定と公開確認
 
 - GitHubへの初回コードpushと公開後のGitHub Actions runの確認。
-- 最終ステージ内容／コミット履歴を含むSecret Scan。
 - 新規Firebaseプロジェクト、匿名認証、Firestore Rules適用、TTL、別ブラウザー間の実投稿送受信。
 - Analytics対応プラン、ダッシュボードの有効化、計測フラグ`true`での再デプロイ、実際の受信確認。
 
