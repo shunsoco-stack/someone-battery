@@ -143,6 +143,13 @@ TTLは即時削除ではなく、通常は期限後24時間以内に処理され
 
 現在の公開URLは[https://someone-battery.vercel.app](https://someone-battery.vercel.app)です。デモの公開と、実Firebase／Analyticsの運用開始は別の作業です。
 
+この公開先はVercel CLIからデプロイしています。GitHubとの自動連携は未接続なので、pushだけでは公開アプリは更新されません。既存の`someone-battery`プロジェクトへリンクしてから、CLIで更新できます。別のアカウントへ複製する場合やGit自動連携を設定する場合は、続く手順を使ってください。
+
+```sh
+npx vercel@59.7.0 link --project someone-battery
+npx vercel@59.7.0 deploy --prod
+```
+
 1. 専用のGitHubリポジトリ`someone-battery`をVercelにインポートします。
 2. Framework PresetはNext.js、Root Directoryはこのリポジトリのルートにします。
 3. 実データで公開する場合だけ、Firebaseの4変数をまとめて設定します。未設定で公開した場合はデモになります。
@@ -192,7 +199,7 @@ PLAYWRIGHT_BASE_URL=https://someone-battery.vercel.app PLAYWRIGHT_TEST_PWA=1 npm
 
 PowerShellでは同名の`$env:PLAYWRIGHT_BASE_URL`と`$env:PLAYWRIGHT_TEST_PWA`を設定してから`npm run test:e2e`を実行します。通常の開発サーバーではPWA専用テストをskipします。これらのE2Eはデモであることを確認してから操作するもので、実Firebaseの投稿テストを代替しません。
 
-`secret-scan`は作業ツリー、Gitのステージ内容、ローカル全refから到達できる履歴を検査します。秘密鍵・トークン・認証ファイルなどの混入を検出しますが、すべての秘密情報を検出できる保証はありません。GitHub公開前に差分を確認し、GitHubのSecret scanning／Push protectionも利用してください。流出した秘密情報は削除だけで済ませず、発行元で失効・再発行します。検査範囲と限界は[SECURITY.md](docs/SECURITY.md)、実行結果は[verification.md](docs/verification.md)を参照してください。
+`secret-scan`は作業ツリー、Gitのステージ内容、ローカル全refから到達できる履歴を検査します。公開時はこの検査と[GitHub Actions](https://github.com/shunsoco-stack/someone-battery/actions)が成功し、GitHubのSecret scanning／Push protectionも有効です。秘密鍵・トークン・認証ファイルなどの混入を検出しますが、すべての秘密情報を検出できる保証はありません。更新時も差分を確認してください。流出した秘密情報は削除だけで済ませず、発行元で失効・再発行します。検査範囲と限界は[SECURITY.md](docs/SECURITY.md)、実行結果は[verification.md](docs/verification.md)を参照してください。
 
 ## スクリーンショット
 

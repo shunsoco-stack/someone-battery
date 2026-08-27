@@ -4,15 +4,15 @@
 
 この記録は「実装済み」「実行成功」「未実行」を区別します。未確認の本番接続や外部設定を、ローカルのテスト成功から推測しません。
 
-公開先: [誰かの充電](https://someone-battery.vercel.app)。初回VercelデプロイはREADY、公開モードはFirebase未設定の明示デモです。公開E2Eは通常操作19件とPWA専用1件が成功し、公開URLのスクリーンショット5枚を取得・目視確認しました。以下は確認できた実行結果であり、最終Git履歴スキャンを先に成功扱いにはしていません。
+公開先: [誰かの充電](https://someone-battery.vercel.app)。Vercel本番デプロイはREADY、公開モードはFirebase未設定の明示デモです。公開E2Eは通常操作19件とPWA専用1件が成功し、公開URLのスクリーンショット5枚を取得・目視確認しました。コード・画像・READMEはGitHubへ公開済みです。コミット履歴を含むSecret ScanとGitHub Actionsも成功しました。
 
 ## 機械的な検証
 
 | 検証 | コマンド / 方法 | 状態 | 証跡・備考 |
 | --- | --- | --- | --- |
 | Secret Scanの自己テスト | `node scripts/secret-scan.mjs --self-test` | 成功 | 15種類の陽性例、6つの安全な例、行番号・出力の非機密性・公開禁止パス、Gitへの文字列／Buffer入力の回帰検証 |
-| Secret Scan | `npm run secret-scan` | 作業ツリー・ステージ・履歴成功 | 公開前に作業ツリー68ファイル、index 68件、追加履歴オブジェクト1件で検出なし。同一blobは重複排除され、履歴検査自体は省略しない。Node.jsの標準入力処理の互換性を修正後に再検査済み |
-| GitHubの秘密情報保護 | Repository APIで設定確認 | 有効 | Secret scanningとSecret scanning push protectionの両方が`enabled` |
+| Secret Scan | `npm run secret-scan` | 作業ツリー・ステージ・履歴成功 | 作業ツリー68ファイル、index 68件と全refの到達可能履歴を検査し、設定済みパターンの検出なし。同一blobは重複排除され、履歴検査自体は省略しない。Node.jsの標準入力処理の互換性を修正後に再検査済み |
+| GitHubの秘密情報保護 | Repository APIで設定確認 | 有効・検査時の警告なし | Secret scanningとSecret scanning push protectionの両方が`enabled`。初回push後のsecret-scanning alertsは0件 |
 | Lint | `npm run lint` | 成功 | アプリ全体のESLint検査成功 |
 | TypeScript | `npm run typecheck` | 成功 | Next.js型生成と`tsc --noEmit`成功 |
 | Unit tests | `npm test` | 成功 | 5ファイル、150 / 150件成功 |
@@ -22,7 +22,7 @@
 | 公開PWA | `PLAYWRIGHT_TEST_PWA=1`で`tests/e2e/pwa.spec.ts`を実行 | 成功 | 1 / 1件成功（4.0秒）。通常のローカル開発サーバーではこの専用テストはskip |
 | アクセシビリティ自動検査 | E2E内のaxe | 成功 | ダーク／ライト × トップ・低残量・投稿・完了の8状態、検出違反0件 |
 | Production build | `npm run build` | 成功 | Next.js 16.3.3の本番ビルド成功 |
-| GitHub Actions | `.github/workflows/ci.yml` | 実装済み・未実行 | 公開後にworkflow runで確認 |
+| GitHub Actions | `.github/workflows/ci.yml` | 全ジョブ成功 | [実行結果](https://github.com/shunsoco-stack/someone-battery/actions/runs/33039019111)。Node.js 22でlint・型・unit・build・Secret Scan、Java 21のFirestoreエミュレーター検証が成功 |
 | 本番依存の脆弱性照会 | `npm audit --omit=dev --audit-level=high` | 成功 | npm公式レジストリへ照会し、0 vulnerabilities（開発依存はこの結果に含めない） |
 
 ## 画面・動作の確認
@@ -52,8 +52,9 @@
 
 | 項目 | 状態 | 証跡・備考 |
 | --- | --- | --- |
-| GitHub公開リポジトリ | 作成成功・初回push待ち | [shunsoco-stack/someone-battery](https://github.com/shunsoco-stack/someone-battery)。コードの公開とActions実行確認は未完了 |
-| Vercel公開アプリ | 初回デプロイ成功 | [someone-battery.vercel.app](https://someone-battery.vercel.app)、READY |
+| GitHub公開リポジトリ | 公開成功 | [shunsoco-stack/someone-battery](https://github.com/shunsoco-stack/someone-battery)。`main`にコード・画像・READMEを公開、Actions成功を確認 |
+| Vercel公開アプリ | 本番デプロイ成功 | [someone-battery.vercel.app](https://someone-battery.vercel.app)、READY。5枚のPNGもHTTP 200・`image/png`・ローカルと同一のバイト数で配信確認 |
+| VercelのGit自動連携 | 未接続（公開には不要） | Git連携は接続できず、Vercel CLIで本番公開済み。GitHubへのpushだけでは自動デプロイしない |
 | 公開URLのE2E / PWA | 成功 | 通常操作19件＋PWA専用1件、合計20件成功 |
 | 本番Firebase | 未接続・外部制約 | GCPの新規プロジェクト作成上限により作成できず。既存の別アプリのプロジェクトは流用せず、公開版は明示デモ |
 | Firestore TTL | 設定手順のみ | 本番プロジェクトへ設定した証跡がなければ有効化済みとしない |
@@ -61,9 +62,8 @@
 | 公開URLからのスクリーンショット5枚 | 取得・目視確認済み | `public/screenshots/`の`01-top.png`、`02-someone-battery.png`、`03-low-battery.png`、`04-post.png`、`05-complete.png`。READMEに埋め込み |
 | Tsukutta掲載 | 未掲載 | 投稿文の作成と実際の掲載を区別 |
 
-## 完了していない外部設定と公開確認
+## 完了していない実運用の外部設定
 
-- GitHubへの初回コードpushと公開後のGitHub Actions runの確認。
 - 新規Firebaseプロジェクト、匿名認証、Firestore Rules適用、TTL、別ブラウザー間の実投稿送受信。
 - Analytics対応プラン、ダッシュボードの有効化、計測フラグ`true`での再デプロイ、実際の受信確認。
 
