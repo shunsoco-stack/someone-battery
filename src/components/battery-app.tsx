@@ -622,7 +622,7 @@ export function BatteryApp() {
             <Download size={14} />
             ホーム画面に追加
           </button>
-          <button onClick={() => setAboutOpen(true)}>プライバシー</button>
+          <button onClick={() => setAboutOpen(true)}>プライバシー</button><a href="/privacy">プライバシーポリシー</a>
           <a
             href="https://github.com/shunsoco-stack/someone-battery"
             target="_blank"

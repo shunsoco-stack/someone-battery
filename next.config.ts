@@ -3,12 +3,12 @@ import type { NextConfig } from "next";
 const isDev = process.env.NODE_ENV === "development";
 const csp = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
+  `script-src 'self' 'unsafe-inline' https://adm.shinobi.jp https://*.shinobi.jp https://*.cnobi.jp${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data:",
+  "img-src 'self' data: https://*.shinobi.jp https://*.cnobi.jp",
   "font-src 'self'",
-  `connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com${isDev ? " http://127.0.0.1:8080 http://127.0.0.1:9099 ws://localhost:* ws://127.0.0.1:*" : ""}`,
-  "frame-src https://*.firebaseapp.com",
+  `connect-src 'self' https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com https://*.shinobi.jp https://*.cnobi.jp${isDev ? " http://127.0.0.1:8080 http://127.0.0.1:9099 ws://localhost:* ws://127.0.0.1:*" : ""}`,
+  "frame-src https://*.firebaseapp.com https://*.shinobi.jp https://*.cnobi.jp",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
